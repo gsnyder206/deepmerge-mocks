@@ -163,6 +163,8 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
         out_data = data*1.0
         out_units=in_units
     elif partField.find('stellarBandObsFrame-')==0:
+        assert sizeType is 'arcmin'  #safety net for now
+
         in_units='mag/arcsec^2' #(confirmed)
         #convert to nanoJanskies
         #size is fixed to be in arcmin
