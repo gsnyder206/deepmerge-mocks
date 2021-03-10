@@ -127,6 +127,7 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
                                  partType='stars',
                                  partField='stellarBandObsFrame-',
                                  size=0.1,
+                                 sizeType='arcmin',
                                  nPixels=150,
                                  axes='0,1',
                                  existingheader=None):
@@ -136,7 +137,7 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
         return None
     #+'&axes='+axes
     url=baseUrl+'/'+sim+'/snapshots/'+str(snap)+'/subhalos/'+str(sfid)+\
-             '/vis.hdf5?partType='+partType+'&partField='+partField+'&size='+str(size)+'&sizeType=arcmin&nPixels='+str(nPixels)+'&method=sphMap_subhalo'+'&axes='+axes
+             '/vis.hdf5?partType='+partType+'&partField='+partField+'&size='+str(size)+'&sizeType='+str(sizetype)+'&nPixels='+str(nPixels)+'&method=sphMap_subhalo'+'&axes='+axes
 
 
 
