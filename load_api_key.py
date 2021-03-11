@@ -1,1 +1,1 @@
-aks='##### YOUR ILLUSTRIS API KEY HERE #####'
+aks='YOUR API KEY HERE'

@@ -130,17 +130,20 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
                                  sizeType='arcmin',
                                  nPixels=150,
                                  axes='0,1',
-                                 existingheader=None):
+                                 distmod=None,
+                                 existingheader=None,
+                                 debug=False):
 
 
     if nPixels > 2000:
         return None
     #+'&axes='+axes
     url=baseUrl+'/'+sim+'/snapshots/'+str(snap)+'/subhalos/'+str(sfid)+\
-             '/vis.hdf5?partType='+partType+'&partField='+partField+'&size='+str(size)+'&sizeType='+str(sizetype)+'&nPixels='+str(nPixels)+'&method=sphMap_subhalo'+'&axes='+axes
+             '/vis.hdf5?partType='+partType+'&partField='+partField+'&size='+str(size)+'&sizeType='+str(sizeType)+'&nPixels='+str(nPixels)+'&method=sphMap_subhalo'+'&axes='+axes
 
 
-
+    if debug is True:
+        r1=get(url.replace('hdf5','png'))
     r=get(url,stream=True)
 
     output=io.BytesIO()
@@ -171,15 +174,38 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
         flux_njy=(pixsize_arcsec**2)*1.0e9*3631.0*10.0**(-0.4*data)  #nJy
         out_data = flux_njy*1.0
         out_units='nanoJanskies'
+
+        if existingheader is not None:
+            fits_hdu = fits.ImageHDU(out_data,header=existingheader)
+        else:
+            fits_hdu = fits.ImageHDU(out_data)
+
+        fits_hdu.header['N_arcmin']=size
+        fits_hdu.header['pixscale']=(pixsize_arcsec,'arcsec')
+
+
     elif partField.find('stellarBand-')==0:
+        assert sizeType is 'kpc'
+        assert distmod is not None
+
         in_units='ABS AB mag'  #(true?)
-        out_data = data*1.0
-        out_units=in_units
+        out_data = np.where(data < 99, 1.0e9*3631.0*10.0**(-0.4*(data+distmod)),0.0) #data*1.0
+        out_units='nanoJanskies'
+
+        if existingheader is not None:
+            fits_hdu = fits.ImageHDU(out_data,header=existingheader)
+        else:
+            fits_hdu = fits.ImageHDU(out_data)
+
+        fits_hdu.header['pixscale']=(size/nPixels,'kpc')
+        fits_hdu.header['distmod']=(distmod, 'distance modulus assumed for flux calculation')
+
+
     else:
+
         #need to confirm other field's units before allowing them here
         #MASS, SFR, METALLICITY MAPS OMG
         #need to figure out what to do about NANs in surface brightness maps?  also metal mass densities?
-
 
         inunitdict={'mass':'log Msun','sfr':'log Msun/year','metal':'log MZ/Mtot',
                     'stellar_age':'Gyr'}
@@ -197,10 +223,7 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
             return None
 
 
-    if existingheader is not None:
-        fits_hdu = fits.ImageHDU(out_data,header=existingheader)
-    else:
-        fits_hdu = fits.ImageHDU(out_data)
+
 
     fits_hdu.header['EXTNAME']='MockData'
     fits_hdu.header['SIM']=sim
@@ -209,10 +232,9 @@ def get_subhalo_mockdata_as_fits(sim='TNG100-1',
     fits_hdu.header['pType']=partType
     fits_hdu.header['pField']=partField
     #fits_hdu.header['bandName']=bandName
-    fits_hdu.header['N_arcmin']=size
+
     fits_hdu.header['nPixels']=nPixels
     fits_hdu.header['axes']=axes
-    fits_hdu.header['pixscale']=(pixsize_arcsec,'arcsec')
     fits_hdu.header['origunit']=(in_units,'downloaded units')
     fits_hdu.header['BUNIT']=(out_units,'final units')
 
