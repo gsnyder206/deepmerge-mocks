@@ -1,1 +1,1 @@
-aks='YOUR API KEY HERE'
+aks='117782db3bf216d7ce7a04d0c9034601'
